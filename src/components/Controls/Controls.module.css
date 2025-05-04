@@ -19,6 +19,9 @@
     resize: none;
     background: #ffffff;
 }
+.TextArea:disabled, .Button:disabled {
+    opacity: 0.35;
+}
 .Button {
     display: flex;
     align-items: center;
