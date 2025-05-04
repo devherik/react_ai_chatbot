@@ -1,35 +1,34 @@
-import { useState } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Chat } from './components/Chat/Chat.jsx';
-import { Controls } from './components/Controls/Controls.jsx';
-import styles from './App.module.css';
-
-const googleAi = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY);
-const gemini = googleAi.getGenerativeModel({model: 'gemini-1.5-flash'});
-const chat = gemini.startChat({ history: []});
+import { useState } from "react";
+import { Assintant } from "./assistants/googleai.js";
+import { Chat } from "./components/Chat/Chat.jsx";
+import { Controls } from "./components/Controls/Controls.jsx";
+import styles from "./App.module.css";
 
 function App() {
+  const assistant = new Assintant();
   const [messages, setMessages] = useState([]);
 
   function addMessage(message) {
-    setMessages((prevMessages) => [...prevMessages, message])
+    setMessages((prevMessages) => [...prevMessages, message]);
   }
 
   async function handleContentSend(content) {
-    addMessage({content, role: 'user'});
+    addMessage({ content, role: "user" });
     try {
-      const result = await chat.sendMessage(content);
-      addMessage({content: result.response.text(), role: 'assistant'});
-
+      const result = await assistant.chat(content);
+      addMessage({ content: result, role: "assistant" });
     } catch (error) {
-      addMessage({content: 'Sorry, I couldnt process your request. Please try again.', role: 'system'});
+      addMessage({
+        content: "Sorry, I couldnt process your request. Please try again.",
+        role: "system",
+      });
     }
   }
 
   return (
     <div className={styles.App}>
       <header className={styles.Header}>
-        <img className={styles.Logo} src='/chat-bot.png' />
+        <img className={styles.Logo} src="/chat-bot.png" />
         <h2 className={styles.Title}>AI ChatBot</h2>
       </header>
       <div className={styles.ChatContainer}>
@@ -40,4 +39,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
