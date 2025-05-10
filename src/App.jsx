@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { use, useState } from "react";
 import { Assintant } from "./assistants/googleai.js";
 import { Loader } from "./components/Loader/Loader.jsx";
 import { Chat } from "./components/Chat/Chat.jsx";
@@ -9,6 +9,15 @@ function App() {
   const assistant = new Assintant();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [streaming, setIsStreaming] = useState(false);
+
+  function updateLastMessageContent(content) {
+    setMessages((prevMessages) =>
+      prevMessages.map((message, index) =>
+        index === prevMessages.length - 1 ? { ...message, content: `${message.content}${content}` } : message
+      )
+    );
+  }
 
   function addMessage(message) {
     setMessages((prevMessages) => [...prevMessages, message]);
@@ -18,15 +27,25 @@ function App() {
     addMessage({ content, role: "user" });
     setLoading(true);
     try {
-      const result = await assistant.chat(content);
-      addMessage({ content: result, role: "assistant" });
+      const result = await assistant.chatStream(content);
+      let isFirstChunk = false;
+      for await (const chunk of result) {
+        if (!isFirstChunk) {
+          isFirstChunk = true;
+          setLoading(false);
+          addMessage({ content: "", role: "assistant" });
+          setIsStreaming(true);
+        }
+        updateLastMessageContent(chunk);
+      }
+      setIsStreaming(false);
     } catch (error) {
       addMessage({
         content: "Sorry, I couldnt process your request. Please try again.",
         role: "system",
       });
-    } finally {
       setLoading(false);
+      setIsStreaming(false);
     }
   }
 
@@ -40,7 +59,7 @@ function App() {
       <div className={styles.ChatContainer}>
         <Chat messages={messages} />
       </div>
-      <Controls isDisabled={loading} onSend={handleContentSend} />
+      <Controls isDisabled={loading || streaming} onSend={handleContentSend} />
     </div>
   );
 }

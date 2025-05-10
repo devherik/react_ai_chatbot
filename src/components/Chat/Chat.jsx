@@ -22,7 +22,8 @@ export function Chat({ messages }) {
   );
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const lastMessage = messages[messages.length - 1];
+    lastMessage?.role === 'user' ? messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }) : null;
   }, [messages]);
 
   return (
