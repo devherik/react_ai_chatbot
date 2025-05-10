@@ -16,4 +16,16 @@ export class Assintant {
       throw error;
     }
   }
+  async chatStream(content) {
+    try {
+      const result = await this.#chat.sendMessageStream(content);
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        process.stdout.write(chunkText);
+      }
+      return result.response.text();
+    } catch (error) {
+      throw error;
+    }
+  }
 }
